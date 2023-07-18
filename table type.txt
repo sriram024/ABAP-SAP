@@ -1,0 +1,19 @@
+*&---------------------------------------------------------------------*
+*& Report ZSRIRAM_TABLETYPE
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZSRIRAM_TABLETYPE.
+types : begin of str,
+  stuid(5) type c,
+  name(20) type c,
+  lname(20) type c,
+  end of str.
+
+  data : itab TYPE TABLE of str,
+        wa type str.
+  data :itab1 TYPE TABLE of mara,
+        wa1 type mara.
+
+  types :s_info type table of str.
+  types : t_info type table of s_info. 

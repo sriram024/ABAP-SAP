@@ -1,0 +1,64 @@
+*&---------------------------------------------------------------------*
+*& Report ZSRIRAM_PLANT_DEMO
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zsriram_plant_demo.
+TYPES : BEGIN OF ty_mard,
+          matnr TYPE mard-matnr,
+          werks TYPE mard-werks,
+          lgort TYPE mard-lgort,
+        END OF ty_mard.
+
+TYPES : BEGIN OF ty_range,
+          sign TYPE char1,
+          opti TYPE char2,
+          low  TYPE matnr,
+          high TYPE matnr,
+        END OF ty_range.
+
+DATA : it_mard            TYPE STANDARD TABLE OF ty_mard,
+       wa_mard            LIKE LINE OF it_mard,
+       it_range           TYPE TABLE OF ty_range,
+       wa_range           LIKE LINE OF it_range,
+       it_range_d         TYPE TABLE OF ty_range,
+       wa_range_d         LIKE LINE OF it_range_d,
+       it_range_s         TYPE TABLE OF ty_range,
+       wa_range_s         LIKE LINE OF it_range_s,
+       it_zcheck_material TYPE TABLE OF zcheck_material,
+       wa_zcheck_material LIKE LINE OF it_zcheck_material.
+
+SELECT-OPTIONS s_werks FOR wa_mard-werks.
+
+SELECT  matnr werks Lgort FROM mard INTO TABLE it_mard WHERE werks IN s_werks .
+SELECT sign opti low high FROM zcheck_material INTO TABLE it_range.
+SELECT * FROM zcheck_material INTO TABLE it_zcheck_material.
+LOOP AT it_zcheck_material INTO wa_zcheck_material.
+  IF wa_zcheck_material-name EQ 'SAFE'.
+    MOVE-CORRESPONDING wa_zcheck_material TO wa_range_s.
+    APPEND wa_range_s TO it_range_s.
+  ELSEIF wa_zcheck_material-name EQ 'DANGER'.
+    MOVE-CORRESPONDING wa_zcheck_material TO wa_range_d.
+    APPEND wa_range_d TO it_range_d.
+  ENDIF.
+  CLEAR: wa_range_d , wa_range_s.
+ENDLOOP.
+
+
+
+SORT it_mard BY matnr.
+LOOP AT it_mard INTO wa_mard.
+  IF wa_mard-matnr IN it_range_d.
+    FORMAT COLOR COL_NEGATIVE.
+    WRITE : / wa_mard-matnr, wa_mard-werks, wa_mard-lgort.
+
+  ELSEIF wa_mard-matnr IN it_range_s.
+    FORMAT COLOR COL_POSITIVE.
+    WRITE : / wa_mard-matnr, wa_mard-werks, wa_mard-lgort.
+
+  ELSE.
+    WRITE : / wa_mard-matnr, wa_mard-werks, wa_mard-lgort.
+
+  ENDIF.
+FORMAT COLOR OFF.
+ENDLOOP.

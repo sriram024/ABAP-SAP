@@ -1,0 +1,25 @@
+*&---------------------------------------------------------------------*
+*& Report ZSRIRAM_ASSIGNMENT
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zsriram_assignment.
+*ZSRIRAM_UST = PACKAGE
+DATA s_kunnr  TYPE kunnr .
+SELECT-OPTIONS v_kunnr FOR s_kunnr .
+
+DATA it_kna1 TYPE zsriram_tt_test1.
+DATA wa_kna1 LIKE LINE OF it_kna1.
+
+
+CALL FUNCTION 'ZSRIRAM_FM1_CUST'
+  EXPORTING
+    s_kunnr         = v_kunnr[]
+ IMPORTING
+   EX_PERSON       = it_kna1
+          .
+
+   CALL FUNCTION 'ZSRIRAM_FM2_CUST'
+     EXPORTING
+       ex_test       = it_kna1
+             .

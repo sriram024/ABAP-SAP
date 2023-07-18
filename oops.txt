@@ -1,0 +1,62 @@
+*&---------------------------------------------------------------------*
+*& Report ZSRIRAM_OOP_CLASS
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zsriram_oop_class.
+CLASS lcl_count DEFINITION.
+  PUBLIC SECTION.
+
+    METHODS count EXPORTING next_number TYPE i.
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+
+ENDCLASS.
+
+CLASS lcl_count IMPLEMENTATION.
+  METHOD count.
+    next_number += 1.
+    WRITE NEXT_NUMBER.
+  ENDMETHOD.
+ENDCLASS.
+
+
+START-OF-SELECTION.
+DATA v_doc TYPE i.
+    DATA v_tag TYPE i.
+  DATA obj_vdoc TYPE REF TO lcl_count.
+  DATA OBJ_vTAG TYPE REF TO lcl_count.
+
+  CREATE OBJECT obj_vdoc.
+  CREATE OBJECT obj_vtag.
+
+  obj_vTAG->count(
+    IMPORTING
+      next_number = V_TAG
+  ).
+  obj_vdoc->count(
+  IMPORTING
+    next_number = V_DOC
+).
+  obj_vTAG->count(
+    IMPORTING
+      next_number = V_TAG
+  ).
+  obj_vdoc->count(
+  IMPORTING
+    next_number = V_DOC
+).
+  obj_vTAG->count(
+    IMPORTING
+      next_number = V_TAG
+  ).
+  obj_vTAG->count(
+    IMPORTING
+      next_number = V_TAG
+  ).
+
+obj_vdoc->count(
+  IMPORTING
+    next_number = V_DOC
+).

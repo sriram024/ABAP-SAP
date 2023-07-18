@@ -1,0 +1,68 @@
+*&---------------------------------------------------------------------*
+*& Report ZSRIRAM_PROCESSING_BLOCK
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZSRIRAM_PROCESSING_BLOCK.
+" Data Objects
+DATA : it_vbrk TYPE TABLE OF ZJANA_VBRk,
+       wa_vbrk LIKE LINE OF it_vbrk.
+DATA : it_vbrp TYPE TABLE OF zjana_vbrp,
+       wa_vbrp LIKE LINE OF it_vbrp.
+
+" Provide selection screen for user Input
+SELECT-OPTIONS s_vbeln FOR wa_vbrk-vbeln.
+START-OF-SELECTION.
+" Data Selection
+SELECT * FROM ZJANA_VBRk INTO TABLE it_vbrk WHERE vbeln IN s_vbeln.
+SELECT * FROM ZJANA_VBRp INTO TABLE it_vbrp WHERE vbeln IN s_vbeln.
+
+
+END-OF-SELECTION.
+" Output the data
+SET PF-STATUS 'LIST'.
+SORT it_vbrp BY vbeln.
+LOOP AT it_vbrp INTO wa_vbrp.
+
+  READ TABLE it_vbrk INTO wa_vbrk WITH KEY vbeln = wa_vbrp-vbeln.
+  AT NEW vbeln.
+
+    WRITE : / 'Doc No:', wa_vbrk-vbeln,
+           / 'Payer:', wa_vbrk-kunrg,
+           / 'Date:', wa_vbrk-fkdat,
+           / 'Net Value:', wa_vbrk-netwr.
+    SKIP.
+    WRITE : / 'Item',
+             'Material',
+             'Quantity',
+             'UoM',
+             'Net Value'.
+  ENDAT.
+  WRITE : / wa_vbrp-posnr,
+            wa_vbrp-matnr,
+            wa_vbrp-fkimg,
+            wa_vbrp-vrkme,
+            wa_vbrp-netwr.
+  AT END OF vbeln.
+    SUM.
+    WRITE : / wa_vbrp-fkimg, wa_vbrp-netwr.
+*    WRITE : / '***************************************END of Document****************************************************'.
+    SKIP.
+  ENDAT.
+ENDLOOP.
+
+TOP-OF-PAGE.
+WRITE 'UST Global'.
+
+END-OF-PAGE.
+WRITE : / 'This is electronic statement'.
+
+AT LINE-SELECTION.
+  WRITE : / 'This is secondary list', sy-lsind.
+
+AT USER-COMMAND.
+  CASE sy-ucomm.
+    WHEN 'PDF'.
+    WHEN 'EXCEL'.
+    WHEN OTHERS.
+  ENDCASE.

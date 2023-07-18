@@ -1,0 +1,70 @@
+*&---------------------------------------------------------------------*
+*& Report ZSRIRAM_FUNCTION_DEMO
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zsriram_function_demo.
+TYPES : BEGIN OF ty_kna1,
+          kunnr TYPE kna1-kunnr,
+          name1 TYPE kna1-name1,
+        END OF ty_kna1.
+
+TYPES : BEGIN OF ty_t006a,
+          msehi TYPE t006a-msehi,
+          mseht TYPE t006a-mseht,
+        END OF ty_t006a.
+
+TYPES:  TYT_VBRK TYPE STANDARD TABLE OF zsriram_vbrk,
+
+  TYT_VBRP TYPE STANDARD TABLE OF zsriram_vbrP.
+" Data Objects
+DATA : it_vbrk TYPE TABLE OF ZJANA_VBRk,
+       wa_vbrk LIKE LINE OF it_vbrk.
+DATA : it_vbrp TYPE TABLE OF zjana_vbrp,
+       wa_vbrp LIKE LINE OF it_vbrp.
+TYPES: SELECT_VBELN LIKE RANGE OF VBRP-VBELN.
+
+TYPES: Tt_kna1 TYPE STANDARD TABLE OF ty_kna1,
+ Tt_t006a TYPE STANDARD TABLE OF ty_t006a.
+*DATA : wa_kna1  LIKE LINE OF it_kna1,
+*       wa_t006a LIKE LINE OF it_t006a.
+
+
+*
+*
+*FORM select1 USING S_VBELN CHANGING IT_VBRK TYPE tyt_vbrk.
+*  SELECT * FROM ZJANA_VBRk INTO TABLE it_vbrk WHERE vbeln EQ s_vbeln.
+*ENDFORM.
+*
+*FORM select2 USING IT_VBRK TYPE tyt_vbrk  CHANGING IT_KNA1 TYPE IT_KNA1 .
+*  IF sy-subrc IS INITIAL.
+*    SELECT kunnr name1 FROM kna1 INTO TABLE it_kna1 FOR ALL ENTRIES IN it_vbrk WHERE kunnr EQ it_vbrk-kunrg.
+*  ENDIF.
+*ENDFORM.
+*
+*FORM select3 USING S_VBELN CHANGING IT_VBRP TYPE TYT_VBRP.
+*  SELECT * FROM ZJANA_VBRp INTO TABLE it_vbrp WHERE vbeln EQ s_vbeln.
+*ENDFORM.
+*
+*FORM select4 USING IT_VBRP TYPE tyt_vbrP CHANGING IT_T006A TYPE IT_T006A.
+*  IF sy-subrc IS INITIAL.
+*    SELECT msehi mseht FROM t006a INTO TABLE it_t006a FOR ALL ENTRIES IN it_vbrP WHERE msehi EQ it_vbrP-vrkme.
+*  ENDIF.
+*ENDFORM.
+
+
+FORM SELECT_GET USING S_VBELN TYPE SELECT_VBELN CHANGING IT_T006A TYPE TT_T006A
+                                        IT_VBRK TYPE tyt_vbrk
+                                        IT_KNA1 TYPE TT_KNA1
+                                        IT_VBRP TYPE TYT_VBRP.
+
+    SELECT * FROM ZJANA_VBRk INTO TABLE it_vbrk WHERE vbeln IN s_vbeln.
+        IF sy-subrc IS INITIAL.
+    SELECT kunnr name1 FROM kna1 INTO TABLE it_kna1 FOR ALL ENTRIES IN it_vbrk WHERE kunnr EQ it_vbrk-kunrg.
+  ENDIF.
+    SELECT * FROM ZJANA_VBRp INTO TABLE it_vbrp WHERE vbeln IN s_vbeln.
+  IF sy-subrc IS INITIAL.
+    SELECT msehi mseht FROM t006a INTO TABLE it_t006a FOR ALL ENTRIES IN it_vbrP WHERE msehi EQ it_vbrP-vrkme.
+  ENDIF.
+
+ENDFORM.

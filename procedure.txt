@@ -1,0 +1,114 @@
+REPORT zsriram_procedures.
+
+TYPES tr_vbeln TYPE RANGE OF vbrk-vbeln.
+
+
+FORM get_header USING r_vbeln TYPE tr_vbeln CHANGING p_it_header TYPE zdemo_t_header.
+  TYPES : BEGIN OF ty_kna1,
+            kunnr TYPE kna1-kunnr,
+            name1 TYPE kna1-name1,
+          END OF ty_kna1.
+  DATA : lt_vbrk TYPE TABLE OF ZJANA_VBRk,
+         lw_vbrk LIKE LINE OF lt_vbrk.
+
+  DATA : lt_vbrP TYPE TABLE OF zjana_vbrp,
+         lw_vbrP LIKE LINE OF lt_vbrP.
+
+  DATA : lt_kna1 TYPE STANDARD TABLE OF ty_kna1,
+         lw_kna1 LIKE LINE OF lt_kna1.
+
+  DATA lw_header LIKE LINE OF p_it_header.
+
+  SELECT * FROM ZJANA_VBRk INTO TABLE lt_vbrk WHERE vbeln IN r_vbeln.
+  IF sy-subrc IS INITIAL.
+    SELECT kunnr name1 FROM kna1 INTO TABLE lt_kna1 FOR ALL ENTRIES IN lt_vbrk WHERE kunnr EQ lt_vbrk-kunrg.
+  ENDIF.
+
+  LOOP AT lt_vbrk INTO lw_vbrk.
+    READ TABLE lt_kna1 INTO lw_kna1 WITH KEY kunnr = lw_vbrk-kunrg.
+    MOVE-CORRESPONDING lw_vbrk TO lw_header.
+    MOVE-CORRESPONDING lw_kna1 TO lw_header.
+    APPEND lw_header TO p_it_header.
+    CLEAR lw_header.
+  ENDLOOP.
+ENDFORM.
+
+
+FORM get_item USING r_vbeln TYPE tr_vbeln CHANGING p_it_item TYPE zsriram_tT_item.
+  TYPES : BEGIN OF ty_t006a,
+            msehi TYPE t006a-msehi,
+            mseht TYPE t006a-mseht,
+          END OF ty_t006a.
+
+  DATA : lt_vbrp TYPE TABLE OF zsriram_vbrp,
+         lw_vbrp LIKE LINE OF lt_vbrp.
+
+  DATA : lt_t006a TYPE STANDARD TABLE OF ty_t006a,
+         lw_t006a LIKE LINE OF lt_t006a.
+
+  DATA lw_ITEM LIKE LINE OF p_it_ITEM.
+
+  SELECT * FROM Zsriram_VBRp INTO TABLE lt_vbrp WHERE vbeln IN R_vbeln.
+  IF sy-subrc IS INITIAL.
+    SELECT msehi mseht FROM t006a INTO TABLE lt_t006a FOR ALL ENTRIES IN lt_vbrp WHERE msehi EQ lt_vbrp-vrkme.
+  ENDIF.
+  LOOP AT lt_vbrP INTO lw_vbrP.
+*    READ TABLE lt_t006a INTO lw_t006a WITH KEY msehi = lw_vbrp-vrkme.
+
+    MOVE-CORRESPONDING lw_vbrP TO lw_ITEM.
+    MOVE-CORRESPONDING lw_T006A TO lw_ITEM.
+    APPEND lw_ITEM TO p_it_ITEM.
+    CLEAR lw_ITEM.
+    ENDLOOP.
+ENDFORM.
+
+FORM get_billing_data USING r_vbeln TYPE tr_vbeln CHANGING p_it_header TYPE zdemo_t_header p_it_item TYPE zsriram_tt_item.
+  TYPES : BEGIN OF ty_kna1,
+            kunnr TYPE kna1-kunnr,
+            name1 TYPE kna1-name1,
+          END OF ty_kna1.
+  DATA : lt_vbrk TYPE TABLE OF Zbilling,
+         lw_vbrk LIKE LINE OF lt_vbrk.
+
+  DATA : lt_kna1 TYPE STANDARD TABLE OF ty_kna1,
+         lw_kna1 LIKE LINE OF lt_kna1.
+
+  DATA lw_header LIKE LINE OF p_it_header.
+
+  SELECT * FROM Zbilling INTO TABLE lt_vbrk WHERE vbeln IN r_vbeln.
+  IF sy-subrc IS INITIAL.
+    SELECT kunnr name1 FROM kna1 INTO TABLE lt_kna1 FOR ALL ENTRIES IN lt_vbrk WHERE kunnr EQ lt_vbrk-kunrg.
+  ENDIF.
+
+  LOOP AT lt_vbrk INTO lw_vbrk.
+    READ TABLE lt_kna1 INTO lw_kna1 WITH KEY kunnr = lw_vbrk-kunrg.
+    MOVE-CORRESPONDING lw_vbrk TO lw_header.
+    MOVE-CORRESPONDING lw_kna1 TO lw_header.
+    APPEND lw_header TO p_it_header.
+    CLEAR lw_header.
+  ENDLOOP.
+
+  TYPES : BEGIN OF ty_t006a,
+            msehi TYPE t006a-msehi,
+            mseht TYPE t006a-mseht,
+          END OF ty_t006a.
+  DATA : lt_vbrp TYPE TABLE OF Zitem,
+         lw_vbrp LIKE LINE OF lt_vbrp.
+  DATA : lt_t006a TYPE STANDARD TABLE OF ty_t006a,
+         lw_t006a LIKE LINE OF lt_t006a.
+
+  DATA lw_item LIKE LINE OF p_it_item.
+
+  SELECT * FROM zitem INTO TABLE lt_vbrp WHERE vbeln IN r_vbeln.
+  IF sy-subrc IS INITIAL.
+    SELECT msehi mseht FROM t006a INTO TABLE lt_t006a FOR ALL ENTRIES IN lt_vbrp WHERE msehi EQ lt_vbrp-vrkme.
+  ENDIF.
+  LOOP AT lt_vbrp INTO lw_vbrp.
+    READ TABLE lt_t006a INTO lw_t006a WITH KEY msehi = lw_vbrp-vrkme.
+    MOVE-CORRESPONDING lw_vbrp TO lw_item.
+    MOVE-CORRESPONDING lw_t006a TO lw_item.
+    APPEND lw_item TO p_it_item.
+    CLEAR lw_item.
+  ENDLOOP.
+
+ENDFORM.

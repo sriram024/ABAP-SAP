@@ -1,0 +1,20 @@
+*&---------------------------------------------------------------------*
+*& Report ZSRIRAM_DOC
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZSRIRAM_DOC.
+data v_doc type i.
+CALL FUNCTION 'ZSRIRAM_FM1'
+ IMPORTING
+   NEXT_NUMBER       = v_doc.
+write v_doc.
+CALL FUNCTION 'ZSRIRAM_FM1'
+ IMPORTING
+   NEXT_NUMBER       = v_doc.
+write v_doc.
+CALL FUNCTION 'ZSRIRAM_FM1'
+ IMPORTING
+   NEXT_NUMBER       = v_doc.
+write v_doc.
+          .

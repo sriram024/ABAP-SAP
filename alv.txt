@@ -1,0 +1,54 @@
+*&---------------------------------------------------------------------*
+*& Report ZSRIRAM_ALV
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT ZSRIRAM_ALV.
+data it_makt type table of makt.
+data v_matnr type matnr.
+select-OPTIONS s_matnr FOR v_matnr.
+
+perform getdata .
+perform display.
+*&---------------------------------------------------------------------*
+*& Form getdata
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM getdata .
+SELECT * from makt into TABLE it_makt where matnr in s_matnr.
+ENDFORM.
+*&---------------------------------------------------------------------*
+*& Form display
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM display .
+  cl_salv_table=>factory(
+*    EXPORTING
+*      list_display   = if_salv_c_bool_sap=>false " ALV Displayed in List Mode
+*      r_container    =                           " Abstract Container for GUI Controls
+*      container_name =
+    IMPORTING
+      r_salv_table   =   data(o_alv)                        " Basis Class Simple ALV Tables
+    CHANGING
+      t_table        = it_makt
+  ).
+*  CATCH cx_salv_msg. " ALV: General Error Class with Messa
+
+*    DATA: lo_functions TYPE REF TO cl_salv_functions_list.
+**
+*    lo_functions = o_alv->get_functions( ).
+*    lo_functions->set_default( abap_true ).
+  o_alv->display( ).
+
+*
+
+
+ENDFORM.

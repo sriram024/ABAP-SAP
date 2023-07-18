@@ -1,0 +1,49 @@
+*&---------------------------------------------------------------------*
+*& Report ZSRIRAM_BILLING_FM
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zsriram_billing_fm.
+
+DATA v_vbeln TYPE vbeln.
+SELECT-OPTIONS s_vbeln FOR v_vbeln.
+DATA :It_header TYPE zdemo_t_header,
+      it_item   TYPE zsriram_tt_item.
+
+DATA: lw_item   LIKE LINE OF it_item,
+      lw_header LIKE LINE OF it_header.
+
+START-OF-SELECTION.
+perform get_data.
+
+end-of-SELECTION.
+   PERFORM get_output.
+
+FORM get_data .
+CALL FUNCTION 'ZSRIRAM_FM'
+  EXPORTING
+    im_vbeln  = s_vbeln[]
+  IMPORTING
+    ex_header = it_header
+    ex_item   = it_item.
+endform.
+
+
+*&---------------------------------------------------------------------*
+*& Form get_output
+*&---------------------------------------------------------------------*
+*& text
+*&---------------------------------------------------------------------*
+*& -->  p1        text
+*& <--  p2        text
+*&---------------------------------------------------------------------*
+FORM get_output .
+
+
+CALL FUNCTION 'ZSRIRAM_FM_OUTPUT'
+  EXPORTING
+    im_item         = it_item
+    im_header       = it_header
+          .
+
+ENDFORM.
