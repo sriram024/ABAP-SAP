@@ -1,0 +1,433 @@
+*&---------------------------------------------------------------------*
+*& Report ZSRIRAM_ALV_PGM2
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zsriram_alv_pgm2.
+
+TYPES: BEGIN OF ty_makt,
+t_color TYPE lvc_t_scol,
+END   OF ty_makt.
+
+TYPES: ty_t_makt TYPE STANDARD TABLE OF ty_makt.
+DATA: t_makt TYPE STANDARD TABLE OF ty_makt.
+DATA: it_makt type standard table of makt.
+DATA v_matnr type matnr.
+
+DATA: o_alv TYPE REF TO cl_salv_table,
+lo_functions TYPE REF TO cl_salv_functions_list.
+
+DATA: lo_layout TYPE REF TO cl_salv_layout,
+lf_variant TYPE slis_vari,
+ls_key    TYPE salv_s_layout_key.
+
+DATA: lo_footer  TYPE REF TO cl_salv_form_layout_grid,
+lo_f_label TYPE REF TO cl_salv_form_label,
+lo_f_flow  TYPE REF TO cl_salv_form_layout_flow.
+
+
+
+DATA: lo_header  TYPE REF TO cl_salv_form_layout_grid,
+lo_h_label TYPE REF TO cl_salv_form_label,
+lo_h_flow  TYPE REF TO cl_salv_form_layout_flow.
+
+SELECT-OPTIONS s_matnr for v_matnr.
+START-OF-SELECTION.
+PERFORM get_data.
+
+END-OF-SELECTION.
+PeRFORM display.
+
+
+FORM get_data .
+
+SELECT * FROM makt INTO TABLE it_makt where matnr in s_matnr.
+
+ENDFORM.
+*&---------------------------------------------------------------------*
+
+FORM display .
+
+cl_salv_table=>factory(
+*  EXPORTING
+*    list_display   = if_salv_c_bool_sap=>false " ALV Displayed in List Mode
+*    r_container    =                           " Abstract Container for GUI Controls
+*    container_name =
+
+IMPORTING
+r_salv_table   =          DATA(o_alv)                 " Basis Class Simple ALV Tables
+CHANGING
+t_table        = it_makt
+
+).
+
+*CATCH cx_salv_msg. " ALV: General Error Class with Message
+**set pf status
+lo_functions = o_alv->get_functions( ).
+lo_functions->set_default( abap_true ).
+**Custom of status
+o_alv->set_screen_status(
+pfstatus      =  'SALV_STANDARD'
+report        =  'SALV_DEMO_TABLE_SELECTIONS'
+set_functions = o_alv->c_functions_all ).
+lo_layout = o_alv->get_layout( ).
+
+*
+
+*   set Layout save restriction
+
+*   1. Set Layout Key .. Unique key identifies the Differenet ALVs
+
+ls_key-report = sy-repid.
+lo_layout->set_key( ls_key ).
+
+*   2. Remove Save layout the restriction.
+
+lo_layout->set_save_restriction( if_salv_c_layout=>restrict_none ).
+
+DATA: lo_header  TYPE REF TO cl_salv_form_layout_grid,
+lo_h_label TYPE REF TO cl_salv_form_label,
+lo_h_flow  TYPE REF TO cl_salv_form_layout_flow.
+
+*
+*   header object
+CREATE OBJECT lo_header.
+
+*   To create a Lable or Flow we have to specify the target
+*     row and column number where we need to set up the output
+*     text.
+
+*   information in Bold
+
+lo_h_label = lo_header->create_label( row = 1 column = 1 ).
+lo_h_label->set_text( 'ALV REPORT FOR MATERIAL DESCRIPTION' ).
+
+*
+
+*   information in tabular format
+
+*    lo_h_flow = lo_header->create_flow( row = 2  column = 1 ).
+
+*    lo_h_flow->create_text( text = 'This is text of flow' ).
+
+**
+
+*    lo_h_flow = lo_header->create_flow( row = 3  column = 1 ).
+
+*    lo_h_flow->create_text( text = 'Number of Records in the output' ).
+
+**
+
+*    lo_h_flow = lo_header->create_flow( row = 3  column = 2 ).
+
+*    lo_h_flow->create_text( text = 20 ).
+
+*
+
+*   set the top of list using the header for Online.
+
+o_alv->set_top_of_list( lo_header ).
+
+*   set the top of list using the header for Print.
+
+o_alv->set_top_of_list_print( lo_header ).
+*
+"set_top_of_page
+
+DATA: lo_footer  TYPE REF TO cl_salv_form_layout_grid,
+lo_f_label TYPE REF TO cl_salv_form_label,
+lo_f_flow  TYPE REF TO cl_salv_form_layout_flow.
+
+*   footer object
+
+CREATE OBJECT lo_footer.
+
+*   information in bold
+
+lo_f_label = lo_footer->create_label( row = 1 column = 1 ).
+lo_f_label->set_text( 'Footer .. here it goes' ).
+
+
+lo_f_flow = lo_footer->create_flow( row = 2  column = 1 ).
+lo_f_flow->create_text( text = '****End of Report****' ).
+
+*
+
+lo_f_flow = lo_footer->create_flow( row = 3  column = 1 ).
+lo_f_flow->create_text( text = 'Footer number' ).
+
+*
+
+lo_f_flow = lo_footer->create_flow( row = 3  column = 2 ).
+lo_f_flow->create_text( text = 1 ).
+
+
+o_alv->set_end_of_list( lo_footer ).
+
+
+
+o_alv->set_end_of_list_print( lo_footer ).
+
+
+
+DATA: lo_display TYPE REF TO cl_salv_display_settings.
+
+*
+
+*   get display object
+
+lo_display = o_alv->get_display_settings( ).
+
+*
+
+*   set ZEBRA pattern
+
+lo_display->set_striped_pattern( 'X' ).
+
+*
+
+*   Title to ALV
+
+lo_display->set_list_header( 'ALV Program for material description' ).
+
+
+
+*
+
+*...Get all the Columns
+
+DATA: lo_cols TYPE REF TO cl_salv_columns.
+
+lo_cols = o_alv->get_columns( ).
+
+*
+
+*   set the Column optimization
+
+lo_cols->set_optimize( 'X' ).
+
+*
+
+*...Process individual columns
+
+DATA: lo_column TYPE REF TO cl_salv_column.
+
+*
+
+*   Change the properties of the Columns MATNR
+
+
+
+lo_column = lo_cols->get_column( 'MATNR' ).
+
+lo_column->set_long_text( 'Material_Number' ).
+
+lo_column->set_medium_text( 'Mat_Number' ).
+
+lo_column->set_short_text( 'Material' ).
+
+lo_column->set_output_length( 10 ).
+
+
+
+DATA: lo_cols_tab TYPE REF TO cl_salv_columns_table,
+
+lo_col_tab  TYPE REF TO cl_salv_column_table.
+
+
+
+DATA: ls_color TYPE lvc_s_colo.    " Colors strucutre
+
+*
+
+*   get Columns object
+
+lo_cols_tab = o_alv->get_columns( ).
+
+*
+
+INCLUDE <color>.
+
+*
+
+*   Get ERDAT column & set the yellow Color fot it
+
+TRY.
+
+lo_col_tab ?= lo_cols_tab->get_column( 'MAKTX' ).
+
+ls_color-col = col_total.
+
+lo_col_tab->set_color( ls_color ).
+
+CATCH cx_salv_not_found.
+
+ENDTRY.
+
+*
+
+*.......Color for Specific Cell & Rows.................
+
+*   Applying color on the 3rd Row and Column AUART
+
+*   Applying color on the Entire 5th Row
+
+*
+
+**
+
+*    LOOP AT it_makt INTO la_makt.
+
+*      l_count = l_count + 1.
+
+*      CASE l_count.
+
+**       Apply RED color to the AUART Cell of the 3rd Row
+
+*        WHEN 3.
+
+*          ls_s_color-fname     = 'AUART'.
+
+*          ls_s_color-color-col = col_negative.
+
+*          ls_s_color-color-int = 0.
+
+*          ls_s_color-color-inv = 0.
+
+*          APPEND ls_s_color TO lt_s_color.
+
+*          CLEAR  ls_s_color.
+
+**
+
+**       Apply GREEN color to the entire row # 5
+
+**         For entire row, we don't pass the Fieldname
+
+*        WHEN 5.
+
+*          ls_s_color-color-col = col_positive.
+
+*          ls_s_color-color-int = 0.
+
+*          ls_s_color-color-inv = 0.
+
+*          APPEND ls_s_color TO lt_s_color.
+
+*          CLEAR  ls_s_color.
+
+*      ENDCASE.
+
+**     Modify that data back to the output table
+
+*      la_makt-t_color = lt_s_color.
+
+*      MODIFY it_makt FROM la_makt.
+
+*      CLEAR  la_makt.
+
+*      CLEAR  lt_s_color.
+
+*    ENDLOOP.
+
+**
+
+**   We will set this COLOR table field name of the internal table to
+
+**   COLUMNS tab reference for the specific colors
+
+*    TRY.
+
+*        lo_cols_tab->set_color_column( 'T_COLOR' ).
+
+*      CATCH cx_salv_data_error.                         "#EC NO_HANDLER
+
+*    ENDTRY.
+
+*    DISPLAY SETTINGS
+
+*        DATA: lo_cols_tab TYPE REF TO cl_salv_columns_table,
+
+*               DATA:lo_col_tab  TYPE REF TO cl_salv_column_table.
+
+*
+
+*   get Columns object
+
+lo_cols_tab = o_alv->get_columns( ).
+
+*
+
+*   Get MATNR column
+
+TRY.
+
+lo_col_tab ?= lo_cols_tab->get_column( 'MATNR' ).
+
+CATCH cx_salv_not_found.
+
+ENDTRY.
+
+*
+
+*   Set the HotSpot for VBELN Column
+
+TRY.
+
+CALL METHOD lo_col_tab->set_cell_type
+EXPORTING
+value = if_salv_c_cell_type=>hotspot.
+
+.
+
+CATCH cx_salv_data_error .
+
+ENDTRY.
+
+*
+
+*...Events
+
+*    DATA: lo_events TYPE REF TO cl_salv_events_table.
+
+*
+
+*   all events
+
+*    lo_events = o_alv->get_event( ).
+
+*
+
+*   event handler
+
+
+
+*    SET HANDLER co_report->on_link_click FOR lo_events.
+
+*
+S
+"set_hotspot_vbeln
+
+*
+
+* Handles the UI on the VBELN (HotSpot)
+
+*
+
+*    DATA: la_makt TYPE ty_makt.
+
+*
+
+*   Get the Sales Order number from the table
+
+*    READ TABLE lo_report->t_makt INTO la_makt INDEX row.
+
+*    IF la_makt-matnr IS NOT INITIAL.
+
+*      MESSAGE i398(00) WITH 'You have selected' la_makt-matnr.
+
+*    ENDIF.
+
+o_alv->display( ).
+
+ENDFORM.
